@@ -1,0 +1,32 @@
+{
+	"name": "create-fullstack-app",
+	"version": "1.0.0",
+	"description": "This package lets you create empty full-stack apps with proper project structure",
+	"main": "index.js",
+	"bin": {
+		"create-fullstack-app": "./index.js"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [
+		"cli",
+		"scaffold",
+		"fullstack",
+		"nodejs",
+		"vite",
+		"express"
+	],
+	"author": "Dev Bachani",
+	"license": "MIT",
+	"dependencies": {
+		"chalk": "^5.6.0",
+		"commander": "^11.1.0",
+		"fs-extra": "^11.3.1",
+		"inquirer": "^8.2.7",
+		"ora": "^5.4.1"
+	},
+	"engines": {
+		"node": ">=16"
+	}
+}
