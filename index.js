@@ -51,9 +51,9 @@ program
         name: 'frontendFramework',
         message: 'Choose your frontend framework:',
         choices: [
-          { name: 'React', value: 'react' },
+          { name: 'React with JavaScript', value: 'react' },
           { name: 'React with TypeScript', value: 'react-ts' },
-          { name: 'Next.js', value: 'nextjs' },
+          { name: 'Next.js with JavaScript', value: 'nextjs' },
           { name: 'Next.js with TypeScript', value: 'nextjs-ts' }
         ],
         when: (answers) => answers.projectType === 'fullstack' || answers.projectType === 'frontend'

@@ -83,6 +83,35 @@ Then run with:
 npx @devbachani/create-another-app
 ```
 
+### Testing Locally (For Development)
+
+If you're developing or contributing to this package, you can test it locally:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Dev22603/create-another-app.git
+cd create-another-app
+
+# 2. Install dependencies
+npm install
+
+# 3. Link the package globally
+npm link
+
+# 4. Test the CLI (from any directory)
+cd ..
+create-another-app test-project
+
+# 5. When done testing, unlink
+npm unlink -g @devbachani/create-another-app
+```
+
+**Note:** If you have an old version globally installed, uninstall it first:
+```bash
+npm uninstall -g create-fullstack-app
+npm unlink -g @devbachani/create-another-app
+```
+
 ## 📖 Usage
 
 ### Interactive Mode
