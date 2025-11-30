@@ -1,6 +1,6 @@
 # CONTEXT.md - Code Implementation Guide
 
-This document provides a detailed explanation of how the `create-fullstack-app` CLI tool works internally. It's intended for developers who want to understand, modify, or contribute to the codebase.
+This document provides a detailed explanation of how the `create-another-app` CLI tool works internally. It's intended for developers who want to understand, modify, or contribute to the codebase.
 
 ---
 
@@ -24,7 +24,7 @@ create-fullstack-app/
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                    USER EXECUTION                        │
-│                create-fullstack-app                      │
+│                create-another-app                        │
 └────────────────────────┬─────────────────────────────────┘
                          │
                          v

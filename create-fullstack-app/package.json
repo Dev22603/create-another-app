@@ -1,10 +1,10 @@
 {
-	"name": "create-fullstack-app",
+	"name": "@devbachani/create-another-app",
 	"version": "1.0.0",
-	"description": "This package lets you create empty full-stack apps with proper project structure",
+	"description": "A modern CLI tool to scaffold full-stack web applications with Next.js, React, and Express.js",
 	"main": "index.js",
 	"bin": {
-		"create-fullstack-app": "./index.js"
+		"create-another-app": "./index.js"
 	},
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -13,12 +13,25 @@
 		"cli",
 		"scaffold",
 		"fullstack",
-		"nodejs",
+		"nextjs",
+		"react",
+		"express",
 		"vite",
-		"express"
+		"typescript",
+		"tailwind",
+		"boilerplate",
+		"generator"
 	],
 	"author": "Dev Bachani",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Dev22603/create-another-app.git"
+	},
+	"homepage": "https://github.com/Dev22603/create-another-app#readme",
+	"bugs": {
+		"url": "https://github.com/Dev22603/create-another-app/issues"
+	},
 	"dependencies": {
 		"chalk": "^5.6.0",
 		"commander": "^11.1.0",

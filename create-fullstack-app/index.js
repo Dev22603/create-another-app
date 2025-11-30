@@ -10,12 +10,12 @@ const { scaffold } = require('./utils/scaffold');
 const program = new Command();
 
 program
-  .name('create-fullstack-app')
-  .description('CLI to scaffold full stack Node.js projects')
+  .name('create-another-app')
+  .description('A modern CLI tool to scaffold full-stack web applications with Next.js, React, and Express.js')
   .version('1.0.0')
   .argument('[project-name]', 'name of the project')
   .action(async (projectName) => {
-    console.log(chalk.blue.bold('\n🚀 Welcome to Fullstack App Generator!\n'));
+    console.log(chalk.blue.bold('\n🚀 Welcome to Create Another App!\n'));
 
     // If no project name provided, ask for it
     if (!projectName) {

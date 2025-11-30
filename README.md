@@ -1,6 +1,6 @@
-# create-fullstack-app
+# create-another-app
 
-A powerful CLI tool to scaffold full-stack web applications with your choice of modern frameworks, tools, and configurations. Skip the tedious setup and jump straight into building your application.
+A powerful CLI tool to scaffold full-stack web applications with Next.js, React, and Express.js. Skip the tedious setup and jump straight into building your application with modern frameworks and best practices.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D16-brightgreen)](https://nodejs.org)
@@ -8,14 +8,14 @@ A powerful CLI tool to scaffold full-stack web applications with your choice of 
 ## 🚀 Quick Start
 
 ```bash
-# Install globally
-npm install -g create-fullstack-app
+# Install globally (when published)
+npm install -g @devbachani/create-another-app
 
 # Create a new project
-create-fullstack-app my-awesome-app
+create-another-app my-awesome-app
 
 # Or run directly with npx (no installation needed)
-npx create-fullstack-app my-awesome-app
+npx @devbachani/create-another-app my-awesome-app
 ```
 
 Follow the interactive prompts to customize your project setup!
@@ -67,20 +67,20 @@ npm --version
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g create-fullstack-app
+npm install -g @devbachani/create-another-app
 ```
 
-After installation, the `create-fullstack-app` command will be available globally.
+After installation, the `create-another-app` command will be available globally.
 
 ### Local Installation
 
 ```bash
-npm install create-fullstack-app
+npm install @devbachani/create-another-app
 ```
 
 Then run with:
 ```bash
-npx create-fullstack-app
+npx @devbachani/create-another-app
 ```
 
 ## 📖 Usage
@@ -90,7 +90,7 @@ npx create-fullstack-app
 Simply run the command and follow the prompts:
 
 ```bash
-create-fullstack-app
+create-another-app
 ```
 
 You'll be asked to configure:
@@ -107,7 +107,7 @@ You'll be asked to configure:
 You can also provide the project name as an argument:
 
 ```bash
-create-fullstack-app my-project-name
+create-another-app my-project-name
 ```
 
 ## 🏗️ Generated Project Structure
@@ -192,7 +192,7 @@ my-backend-app/
 ### Creating a React + Express Full-Stack App with TypeScript
 
 ```bash
-create-fullstack-app my-app
+create-another-app my-app
 # Select:
 # - Project type: fullstack
 # - Frontend: React with TypeScript
@@ -215,7 +215,7 @@ npm run dev
 ### Creating a Next.js Frontend-Only App
 
 ```bash
-create-fullstack-app my-nextjs-app
+create-another-app my-nextjs-app
 # Select:
 # - Project type: frontend
 # - Frontend: Next.js with TypeScript
@@ -229,7 +229,7 @@ npm run dev
 ### Creating an Express Backend with MongoDB
 
 ```bash
-create-fullstack-app my-api
+create-another-app my-api
 # Select:
 # - Project type: backend
 # - Backend: Express.js with TypeScript
@@ -394,7 +394,7 @@ A: Yes, it works on all platforms that support Node.js >= 16.
 A: Currently, the tool uses npm for dependency installation. You can manually switch to yarn/pnpm after generation.
 
 ### Q: How do I update to the latest version?
-A: Run `npm update -g create-fullstack-app` to get the latest version.
+A: Run `npm update -g @devbachani/create-another-app` to get the latest version.
 
 ### Q: Can I add features after project generation?
 A: Yes, you can manually add any features to your generated project afterward.
