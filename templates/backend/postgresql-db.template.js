@@ -1,15 +1,18 @@
 module.exports = () => {
-	return `import pkg from 'pg';
-const { Pool } = pkg;
+	return `import pg from 'pg';
+const { Pool } = pg;
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'myapp',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
-export default pool;
+export { pool };
 `;
 };

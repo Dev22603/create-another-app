@@ -1,36 +1,23 @@
 module.exports = () => {
-	return `import pool from '../db/db.mjs';
+	return `const INSERT_USER = \`INSERT INTO Users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role\`;
 
-export const getAllUsers = async () => {
-  const result = await pool.query('SELECT * FROM users');
-  return result.rows;
-};
+const CHECK_USER_EXISTS = \`SELECT EXISTS(SELECT 1 FROM Users WHERE email = $1) AS "exists"\`;
 
-export const getUserById = async (id) => {
-  const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-  return result.rows[0];
-};
+const GET_USER_BY_EMAIL_ID = \`SELECT * FROM Users WHERE email = $1\`;
 
-export const createUser = async (userData) => {
-  const { name, email } = userData;
-  const result = await pool.query(
-    'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
-    [name, email]
-  );
-  return result.rows[0];
-};
+const GET_USERS = \`SELECT * FROM Users\`;
 
-export const updateUser = async (id, userData) => {
-  const { name, email } = userData;
-  const result = await pool.query(
-    'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
-    [name, email, id]
-  );
-  return result.rows[0];
-};
+const UPDATE_USER = \`UPDATE Users SET name = $2, email = $3, role = $4 WHERE id = $1 RETURNING id, name, email, role\`;
 
-export const deleteUser = async (id) => {
-  await pool.query('DELETE FROM users WHERE id = $1', [id]);
+const DELETE_USER = \`DELETE FROM Users WHERE id = $1 RETURNING id, name, email, role\`;
+
+export {
+  INSERT_USER,
+  CHECK_USER_EXISTS,
+  GET_USER_BY_EMAIL_ID,
+  GET_USERS,
+  UPDATE_USER,
+  DELETE_USER,
 };
 `;
 };

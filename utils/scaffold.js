@@ -143,6 +143,8 @@ function createPackageJson(projectPath, config) {
 		dependencies.mongoose = "^8.0.3";
 	} else if (config.database === "postgresql") {
 		dependencies.pg = "^8.11.3";
+		dependencies.bcryptjs = "^2.4.3";
+		dependencies.jsonwebtoken = "^9.0.2";
 	}
 
 	const devDependencies = {

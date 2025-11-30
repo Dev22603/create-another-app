@@ -1,11 +1,10 @@
 module.exports = (config) => {
-	const envImport = config.additionalFeatures.includes("env")
-		? "import dotenv from 'dotenv';\ndotenv.config();\n\n"
-		: "";
+	return `import dotenv from 'dotenv';
+dotenv.config();
 
-	return `${envImport}import express from 'express';
+import express from 'express';
 import cors from 'cors';
-import pool from './db/db.mjs';
+import userRoutes from './routes/user.routes.mjs';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,16 +14,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test database connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('PostgreSQL connection error:', err);
-  } else {
-    console.log('PostgreSQL connected successfully');
-  }
-});
-
 // Routes
+app.use('/api', userRoutes);
+
 app.get('/', (req, res) => {
   res.json({ message: 'Backend API is running!' });
 });
