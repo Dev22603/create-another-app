@@ -20,7 +20,10 @@
 		"typescript",
 		"tailwind",
 		"boilerplate",
-		"generator"
+		"generator",
+		"mongodb",
+		"postgresql",
+		"database"
 	],
 	"author": "Dev Bachani",
 	"license": "MIT",
@@ -31,6 +34,9 @@
 	"homepage": "https://github.com/Dev22603/create-another-app#readme",
 	"bugs": {
 		"url": "https://github.com/Dev22603/create-another-app/issues"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"dependencies": {
 		"chalk": "^4.1.2",
