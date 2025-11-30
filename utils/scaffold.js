@@ -139,15 +139,23 @@ function createPackageJson(projectPath, config) {
 		dependencies.dotenv = "^16.3.1";
 	}
 
+	// Handle database dependencies
 	if (config.database === "mongodb") {
 		dependencies.mongoose = "^8.0.3";
 	} else if (config.database === "postgresql") {
 		dependencies.pg = "^8.11.3";
+	} else if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		dependencies["@prisma/client"] = "^6.1.0";
 	}
 
 	const devDependencies = {
 		nodemon: "^3.0.1",
 	};
+
+	// Add Prisma CLI to devDependencies
+	if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		devDependencies.prisma = "^6.1.0";
+	}
 
 	if (config.backendTemplate.includes("ts")) {
 		devDependencies["@types/express"] = "^4.17.17";
@@ -161,6 +169,24 @@ function createPackageJson(projectPath, config) {
 		}
 	}
 
+	const scripts = {
+		start: config.backendTemplate.includes("ts")
+			? "node dist/index.js"
+			: "node index.mjs",
+		dev: config.backendTemplate.includes("ts")
+			? "tsx watch src/index.mts"
+			: "nodemon index.mjs",
+		...(config.backendTemplate.includes("ts") && { build: "tsc" }),
+	};
+
+	// Add Prisma scripts
+	if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		scripts["prisma:generate"] = "prisma generate";
+		scripts["prisma:migrate"] = "prisma migrate dev";
+		scripts["prisma:studio"] = "prisma studio";
+		scripts["prisma:push"] = "prisma db push";
+	}
+
 	return {
 		name:
 			config.projectType === "fullstack"
@@ -172,15 +198,7 @@ function createPackageJson(projectPath, config) {
 		main: config.backendTemplate.includes("ts")
 			? "dist/index.js"
 			: "index.mjs",
-		scripts: {
-			start: config.backendTemplate.includes("ts")
-				? "node dist/index.js"
-				: "node index.mjs",
-			dev: config.backendTemplate.includes("ts")
-				? "tsx watch src/index.mts"
-				: "nodemon index.mjs",
-			...(config.backendTemplate.includes("ts") && { build: "tsc" }),
-		},
+		scripts,
 		dependencies,
 		devDependencies,
 	};
@@ -194,6 +212,8 @@ async function createBackendFolders(backendPath, config) {
 		folders.push("queries", "db");
 	} else if (config.database === "mongodb") {
 		folders.push("models", "db");
+	} else if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		folders.push("prisma");
 	}
 
 	if (config.backendTemplate.includes("ts")) {
@@ -203,7 +223,7 @@ async function createBackendFolders(backendPath, config) {
 				fs.ensureDir(
 					path.join(
 						backendPath,
-						folder === "src" ? folder : `src/${folder}`
+						folder === "src" || folder === "prisma" ? folder : `src/${folder}`
 					)
 				)
 			)
@@ -308,6 +328,11 @@ async function createServerFile(backendPath, config) {
 			__dirname,
 			"../templates/backend/mongodb-server.template.js"
 		));
+	} else if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		serverTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/prisma-server.template.js"
+		));
 	} else {
 		// No database template
 		const envImport = config.additionalFeatures.includes("env")
@@ -368,28 +393,49 @@ app.listen(PORT, () => {
 async function createDatabaseFiles(backendPath, config) {
 	const isTypeScript = config.backendTemplate.includes("ts");
 	const ext = isTypeScript ? ".mts" : ".mjs";
-	const dbDir = isTypeScript ? "src/db" : "db";
-	const dbPath = path.join(backendPath, dbDir);
 
-	let dbTemplate;
-	let filename;
+	if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		// Create Prisma files
+		const prismaDir = path.join(backendPath, "prisma");
 
-	if (config.database === "postgresql") {
-		dbTemplate = require(path.join(
-			__dirname,
-			"../templates/backend/postgresql-db.template.js"
-		));
-		filename = `db${ext}`;
-	} else if (config.database === "mongodb") {
-		dbTemplate = require(path.join(
-			__dirname,
-			"../templates/backend/mongodb-db.template.js"
-		));
-		filename = `database${ext}`;
-	}
+		// Create schema.prisma
+		const schemaTemplate = config.database === "prisma-postgresql"
+			? require(path.join(__dirname, "../templates/backend/prisma-schema-postgresql.template.js"))
+			: require(path.join(__dirname, "../templates/backend/prisma-schema-mongodb.template.js"));
+		await fs.writeFile(path.join(prismaDir, "schema.prisma"), schemaTemplate());
 
-	if (dbTemplate) {
-		await fs.writeFile(path.join(dbPath, filename), dbTemplate());
+		// Create client.mjs
+		const clientTemplate = require(path.join(__dirname, "../templates/backend/prisma-client.template.js"));
+		await fs.writeFile(path.join(prismaDir, `client${ext}`), clientTemplate());
+
+		// Create prisma.config.mjs
+		const configTemplate = require(path.join(__dirname, "../templates/backend/prisma-config.template.js"));
+		await fs.writeFile(path.join(prismaDir, `prisma.config${ext}`), configTemplate());
+	} else {
+		// Handle non-Prisma databases
+		const dbDir = isTypeScript ? "src/db" : "db";
+		const dbPath = path.join(backendPath, dbDir);
+
+		let dbTemplate;
+		let filename;
+
+		if (config.database === "postgresql") {
+			dbTemplate = require(path.join(
+				__dirname,
+				"../templates/backend/postgresql-db.template.js"
+			));
+			filename = `db${ext}`;
+		} else if (config.database === "mongodb") {
+			dbTemplate = require(path.join(
+				__dirname,
+				"../templates/backend/mongodb-db.template.js"
+			));
+			filename = `database${ext}`;
+		}
+
+		if (dbTemplate) {
+			await fs.writeFile(path.join(dbPath, filename), dbTemplate());
+		}
 	}
 }
 
@@ -399,14 +445,26 @@ async function createSampleFiles(backendPath, config) {
 	const baseDir = isTypeScript ? "src" : "";
 
 	// Create sample controller
-	const controllerTemplate = require(path.join(
-		__dirname,
-		"../templates/backend/sample-user-controller.template.js"
-	));
-	await fs.writeFile(
-		path.join(backendPath, baseDir, "controllers", `user.controller${ext}`),
-		controllerTemplate(config.database || "none")
-	);
+	let controllerTemplate;
+	if (config.database === "prisma-postgresql" || config.database === "prisma-mongodb") {
+		controllerTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/sample-prisma-user-controller.template.js"
+		));
+		await fs.writeFile(
+			path.join(backendPath, baseDir, "controllers", `user.controller${ext}`),
+			controllerTemplate()
+		);
+	} else {
+		controllerTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/sample-user-controller.template.js"
+		));
+		await fs.writeFile(
+			path.join(backendPath, baseDir, "controllers", `user.controller${ext}`),
+			controllerTemplate(config.database || "none")
+		);
+	}
 
 	// Create sample routes
 	const routesTemplate = require(path.join(
@@ -438,6 +496,7 @@ async function createSampleFiles(backendPath, config) {
 			modelTemplate()
 		);
 	}
+	// Note: Prisma doesn't need separate model files as they're in schema.prisma
 }
 
 async function setupAdditionalFeatures(projectPath, config) {
@@ -467,6 +526,16 @@ DB_PASSWORD=password
 				envContent += `
 # MongoDB Configuration
 MONGODB_URI=mongodb://localhost:27017/myapp
+`;
+			} else if (config.database === "prisma-postgresql") {
+				envContent += `
+# Prisma PostgreSQL Configuration
+DATABASE_URL="postgresql://postgres:password@localhost:5432/myapp?schema=public"
+`;
+			} else if (config.database === "prisma-mongodb") {
+				envContent += `
+# Prisma MongoDB Configuration
+DATABASE_URL="mongodb://localhost:27017/myapp"
 `;
 			}
 
@@ -587,6 +656,14 @@ ${
 	}${
 		config.database === "postgresql"
 			? "- 🐘 PostgreSQL integration with pg\n"
+			: ""
+	}${
+		config.database === "prisma-postgresql"
+			? "- 🔷 PostgreSQL with Prisma ORM\n"
+			: ""
+	}${
+		config.database === "prisma-mongodb"
+			? "- 🔷 MongoDB with Prisma ORM\n"
 			: ""
 	}${
 		config.additionalFeatures.includes("env") || config.database !== "none"
