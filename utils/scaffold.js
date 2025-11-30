@@ -189,19 +189,21 @@ async function setupTailwind(frontendPath) {
 	const spinner = ora("Setting up Tailwind CSS...").start();
 
 	try {
-		// Install Tailwind
-		execSync("npm install -D tailwindcss postcss autoprefixer", {
-			cwd: frontendPath,
-			stdio: "pipe",
-		});
+		// Add Tailwind to package.json dependencies
+		const packageJsonPath = path.join(frontendPath, "package.json");
+		const packageJson = await fs.readJson(packageJsonPath);
 
-		// Initialize Tailwind
-		execSync("npx tailwindcss init -p", {
-			cwd: frontendPath,
-			stdio: "pipe",
-		});
+		if (!packageJson.devDependencies) {
+			packageJson.devDependencies = {};
+		}
 
-		// Update tailwind.config.js
+		packageJson.devDependencies.tailwindcss = "^3.4.1";
+		packageJson.devDependencies.postcss = "^8.4.33";
+		packageJson.devDependencies.autoprefixer = "^10.4.16";
+
+		await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+
+		// Create tailwind.config.js
 		const tailwindConfig = `/** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -217,6 +219,19 @@ export default {
 		await fs.writeFile(
 			path.join(frontendPath, "tailwind.config.js"),
 			tailwindConfig
+		);
+
+		// Create postcss.config.js
+		const postcssConfig = `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}`;
+
+		await fs.writeFile(
+			path.join(frontendPath, "postcss.config.js"),
+			postcssConfig
 		);
 
 		// Add Tailwind to CSS
