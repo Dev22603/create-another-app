@@ -49,20 +49,37 @@ async function setupFrontend(projectPath, config) {
 			: projectPath;
 
 	try {
-		// Create Vite app
-		execSync(
-			`npm create vite@latest ${path.basename(
-				frontendPath
-			)} -- --template ${config.frontendFramework}`,
-			{
-				cwd: path.dirname(frontendPath),
-				stdio: "pipe",
-			}
-		);
+		const isNextJS = config.frontendFramework.startsWith("nextjs");
 
-		// Setup Tailwind if requested
-		if (config.includeTailwind) {
-			await setupTailwind(frontendPath);
+		if (isNextJS) {
+			// Create Next.js app
+			const useTypeScript = config.frontendFramework === "nextjs-ts";
+			const tailwindFlag = config.includeTailwind ? "--tailwind" : "--no-tailwind";
+			const tsFlag = useTypeScript ? "--ts" : "--js";
+
+			execSync(
+				`npx create-next-app@latest ${path.basename(frontendPath)} ${tsFlag} ${tailwindFlag} --eslint --app --no-src-dir --import-alias "@/*"`,
+				{
+					cwd: path.dirname(frontendPath),
+					stdio: "pipe",
+				}
+			);
+		} else {
+			// Create React app with Vite
+			execSync(
+				`npm create vite@latest ${path.basename(
+					frontendPath
+				)} -- --template ${config.frontendFramework}`,
+				{
+					cwd: path.dirname(frontendPath),
+					stdio: "pipe",
+				}
+			);
+
+			// Setup Tailwind if requested for Vite projects
+			if (config.includeTailwind) {
+				await setupTailwind(frontendPath);
+			}
 		}
 
 		spinner.succeed("Frontend setup complete");
@@ -406,7 +423,15 @@ npm run dev
 
 ${
 	config.projectType !== "backend"
-		? `- ⚛️ ${config.frontendFramework} frontend with Vite\n`
+		? `- ⚛️ ${
+				config.frontendFramework.startsWith("nextjs")
+					? config.frontendFramework === "nextjs-ts"
+						? "Next.js with TypeScript"
+						: "Next.js"
+					: config.frontendFramework === "react-ts"
+					? "React with TypeScript (Vite)"
+					: "React (Vite)"
+		  }\n`
 		: ""
 }${config.includeTailwind ? "- 🎨 Tailwind CSS for styling\n" : ""}${
 		config.projectType !== "frontend"

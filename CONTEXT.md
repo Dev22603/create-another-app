@@ -199,7 +199,7 @@ const answers = await inquirer.prompt([
   type: 'list',
   name: 'frontendFramework',
   message: 'Choose a frontend framework:',
-  choices: ['React', 'React (TS)', 'Vue', 'Vue (TS)', 'Vanilla JS'],
+  choices: ['React', 'React (TS)', 'Next.js', 'Next.js (TS)'],
   when: (answers) => answers.projectType !== 'backend'  // Only show if not backend-only
 }
 ```
@@ -283,22 +283,32 @@ async function setupFrontend(projectPath, answers) {
       ? path.join(projectPath, 'frontend')
       : projectPath;
 
-    // Determine Vite template based on user selection
-    const templateMap = {
-      'React': 'react',
-      'React (TS)': 'react-ts',
-      'Vue': 'vue',
-      'Vue (TS)': 'vue-ts',
-      'Vanilla JS': 'vanilla'
-    };
+    const isNextJS = answers.frontendFramework.startsWith('nextjs');
 
-    const template = templateMap[answers.frontendFramework];
+    if (isNextJS) {
+      // Create Next.js app
+      const useTypeScript = answers.frontendFramework === 'nextjs-ts';
+      const tailwindFlag = answers.includeTailwind ? '--tailwind' : '--no-tailwind';
+      const tsFlag = useTypeScript ? '--ts' : '--js';
 
-    // Use npm create vite to scaffold frontend
-    await execCommand(
-      `npm create vite@latest ${path.basename(frontendPath)} -- --template ${template}`,
-      { cwd: path.dirname(frontendPath) }
-    );
+      await execCommand(
+        `npx create-next-app@latest ${path.basename(frontendPath)} ${tsFlag} ${tailwindFlag} --eslint --app --no-src-dir --import-alias "@/*"`,
+        { cwd: path.dirname(frontendPath) }
+      );
+    } else {
+      // Create React app with Vite
+      const template = answers.frontendFramework; // 'react' or 'react-ts'
+
+      await execCommand(
+        `npm create vite@latest ${path.basename(frontendPath)} -- --template ${template}`,
+        { cwd: path.dirname(frontendPath) }
+      );
+
+      // Setup Tailwind if requested for Vite projects
+      if (answers.includeTailwind) {
+        await setupTailwind(frontendPath);
+      }
+    }
 
     spinner.succeed('Frontend setup complete!');
   } catch (error) {
@@ -311,15 +321,19 @@ async function setupFrontend(projectPath, answers) {
 **How it works:**
 1. Shows spinner for UX feedback
 2. Determines correct path (root for frontend-only, `frontend/` for fullstack)
-3. Maps user-friendly names to Vite template names
-4. Executes `npm create vite` with appropriate template
-5. Updates spinner based on success/failure
+3. Checks if the framework is Next.js
+4. For Next.js:
+   - Uses `create-next-app` with appropriate flags for TypeScript and Tailwind
+   - Tailwind is configured during creation (no manual setup needed)
+5. For React:
+   - Uses `npm create vite` with appropriate template
+   - Manually sets up Tailwind if requested
+6. Updates spinner based on success/failure
 
-**Why `npm create vite`?**
-- Vite provides official templates for React, Vue, etc.
-- Saves us from manually creating all boilerplate files
-- Ensures best practices and latest configurations
-- Includes proper Vite configuration out of the box
+**Why different tools?**
+- **Vite** for React: Lightning-fast HMR and simple React projects
+- **Next.js**: Full-featured React framework with SSR, routing, and built-in optimizations
+- Each tool provides official templates ensuring best practices
 
 ---
 
@@ -389,15 +403,13 @@ async function setupBackend(projectPath, answers) {
 
 ```javascript
 async function createBackendPackageJson(backendPath, answers) {
-  const isTypeScript = answers.backendTemplate === 'Express (TS)';
-  const isFastify = answers.backendTemplate === 'Fastify';
+  const isTypeScript = answers.backendTemplate === 'express-ts';
 
   const packageJson = {
     name: `${answers.projectName}-backend`,
     version: '1.0.0',
     description: 'Backend for ' + answers.projectName,
-    main: isTypeScript ? 'src/server.ts' : 'server.js',
-    type: 'module',  // Enable ES modules
+    main: isTypeScript ? 'dist/server.js' : 'server.js',
     scripts: {},
     dependencies: {},
     devDependencies: {}
@@ -417,22 +429,15 @@ async function createBackendPackageJson(backendPath, answers) {
     };
   }
 
-  // Add dependencies based on framework
-  if (isFastify) {
-    packageJson.dependencies = {
-      'fastify': '^4.25.0',
-      '@fastify/cors': '^8.4.0'
-    };
-  } else {
-    packageJson.dependencies = {
-      'express': '^4.18.2',
-      'cors': '^2.8.5'
-    };
+  // Add Express dependencies
+  packageJson.dependencies = {
+    'express': '^4.18.2',
+    'cors': '^2.8.5'
+  };
 
-    if (isTypeScript) {
-      packageJson.devDependencies['@types/express'] = '^4.17.21';
-      packageJson.devDependencies['@types/cors'] = '^2.8.17';
-    }
+  if (isTypeScript) {
+    packageJson.devDependencies['@types/express'] = '^4.17.21';
+    packageJson.devDependencies['@types/cors'] = '^2.8.17';
   }
 
   // Add TypeScript dependencies
@@ -559,48 +564,7 @@ app.listen(PORT, () => {
 `;
 ```
 
-**Fastify Example (JavaScript):**
-```javascript
-const serverContent = `
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-${answers.additionalFeatures?.includes('mongodb') ? "import mongoose from 'mongoose';" : ''}
-${answers.additionalFeatures?.includes('env') || answers.additionalFeatures?.includes('mongodb') ? "import dotenv from 'dotenv';" : ''}
-
-${answers.additionalFeatures?.includes('env') || answers.additionalFeatures?.includes('mongodb') ? "dotenv.config();" : ''}
-
-const fastify = Fastify({ logger: true });
-
-// Register CORS
-await fastify.register(cors);
-
-${answers.additionalFeatures?.includes('mongodb') ? `
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/${answers.projectName}')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-` : ''}
-
-// Routes
-fastify.get('/', async (request, reply) => {
-  return { message: 'Welcome to ${answers.projectName} API' };
-});
-
-// Start server
-const start = async () => {
-  try {
-    await fastify.listen({ port: process.env.PORT || 5000 });
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-
-start();
-`;
-```
-
-**Template Features:**
+**Template Features (Express.js):**
 - Conditional imports based on selected features
 - Environment variable configuration
 - MongoDB connection setup (if selected)

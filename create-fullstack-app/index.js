@@ -54,9 +54,8 @@ program
         choices: [
           { name: 'React', value: 'react' },
           { name: 'React with TypeScript', value: 'react-ts' },
-          { name: 'Vue', value: 'vue' },
-          { name: 'Vue with TypeScript', value: 'vue-ts' },
-          { name: 'Vanilla JavaScript', value: 'vanilla' }
+          { name: 'Next.js', value: 'nextjs' },
+          { name: 'Next.js with TypeScript', value: 'nextjs-ts' }
         ],
         when: (answers) => answers.projectType === 'fullstack' || answers.projectType === 'frontend'
       },
@@ -73,8 +72,7 @@ program
         message: 'Choose your backend setup:',
         choices: [
           { name: 'Express.js with JavaScript', value: 'express-js' },
-          { name: 'Express.js with TypeScript', value: 'express-ts' },
-          { name: 'Fastify with JavaScript', value: 'fastify-js' }
+          { name: 'Express.js with TypeScript', value: 'express-ts' }
         ],
         when: (answers) => answers.projectType === 'fullstack' || answers.projectType === 'backend'
       },

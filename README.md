@@ -29,12 +29,10 @@ Follow the interactive prompts to customize your project setup!
 
 - **⚛️ Frontend Frameworks**
   - React (JavaScript or TypeScript)
-  - Vue (JavaScript or TypeScript)
-  - Vanilla JavaScript
+  - Next.js (JavaScript or TypeScript)
 
-- **🚂 Backend Frameworks**
+- **🚂 Backend Framework**
   - Express.js (JavaScript or TypeScript)
-  - Fastify (JavaScript)
 
 - **🎨 Styling**
   - Tailwind CSS integration (optional)
@@ -48,7 +46,8 @@ Follow the interactive prompts to customize your project setup!
   - TypeScript support across the stack
 
 - **⚡ Modern Build Tools**
-  - Vite for lightning-fast frontend development
+  - Vite for React projects (lightning-fast HMR)
+  - Next.js for optimized React applications
   - Hot Module Replacement (HMR)
   - Optimized production builds
 
@@ -97,8 +96,8 @@ create-fullstack-app
 You'll be asked to configure:
 1. **Project name** - The name of your project
 2. **Project type** - Fullstack, Frontend only, or Backend only
-3. **Frontend framework** - React, Vue, or Vanilla JS (with or without TypeScript)
-4. **Backend template** - Express or Fastify (with or without TypeScript)
+3. **Frontend framework** - React or Next.js (with or without TypeScript)
+4. **Backend template** - Express.js (with JavaScript or TypeScript)
 5. **Tailwind CSS** - Include Tailwind for styling
 6. **Additional features** - Environment variables, linting, MongoDB, authentication
 7. **Dependency installation** - Automatically run `npm install`
@@ -213,27 +212,27 @@ cd backend
 npm run dev
 ```
 
-### Creating a Vue Frontend-Only App
+### Creating a Next.js Frontend-Only App
 
 ```bash
-create-fullstack-app my-vue-app
+create-fullstack-app my-nextjs-app
 # Select:
 # - Project type: frontend
-# - Frontend: Vue with TypeScript
+# - Frontend: Next.js with TypeScript
 # - Include Tailwind: Yes
 # - Install dependencies: Yes
 
-cd my-vue-app
+cd my-nextjs-app
 npm run dev
 ```
 
-### Creating a Fastify Backend with MongoDB
+### Creating an Express Backend with MongoDB
 
 ```bash
 create-fullstack-app my-api
 # Select:
 # - Project type: backend
-# - Backend: Fastify
+# - Backend: Express.js with TypeScript
 # - Additional features: Environment variables, MongoDB & Mongoose
 # - Install dependencies: Yes
 
@@ -246,15 +245,13 @@ npm run dev
 
 ### Frontend Dependencies (varies by selection)
 
-- **React Projects**: `react`, `react-dom`
-- **Vue Projects**: `vue`
+- **React Projects (Vite)**: `react`, `react-dom`, `vite`
+- **Next.js Projects**: `next`, `react`, `react-dom`
 - **Tailwind CSS**: `tailwindcss`, `postcss`, `autoprefixer`
-- **Vite**: Build tool and dev server
 
 ### Backend Dependencies (varies by selection)
 
 - **Express**: `express`, `cors`
-- **Fastify**: `fastify`, `@fastify/cors`
 - **TypeScript**: `typescript`, `@types/node`, `tsx`, `@types/express`
 - **MongoDB**: `mongoose`, `dotenv`
 - **Development**: `nodemon` (for auto-restart)
@@ -265,7 +262,8 @@ npm run dev
 The tool automatically generates configuration files based on your selections:
 
 - **package.json** - Custom scripts and dependencies
-- **vite.config.js** - Vite configuration for frontend
+- **vite.config.js** - Vite configuration (for React projects)
+- **next.config.js** - Next.js configuration (for Next.js projects)
 - **tailwind.config.js** - Tailwind CSS configuration
 - **postcss.config.js** - PostCSS configuration
 - **tsconfig.json** - TypeScript configuration
@@ -342,9 +340,10 @@ Found a bug or have a feature request? Please open an issue on the [GitHub repos
 | Chalk | Terminal styling |
 | Ora | Loading spinners |
 | fs-extra | File system operations |
-| Vite | Frontend build tool |
-| React/Vue | Frontend frameworks |
-| Express/Fastify | Backend frameworks |
+| Vite | Build tool for React projects |
+| Next.js | React framework with SSR |
+| React | Frontend framework |
+| Express.js | Backend framework |
 | Tailwind CSS | Utility-first CSS |
 | MongoDB | Database (optional) |
 | TypeScript | Type safety (optional) |
@@ -352,7 +351,7 @@ Found a bug or have a feature request? Please open an issue on the [GitHub repos
 ## ⚡ Performance
 
 - **Fast Setup**: Generate a complete project in seconds
-- **Optimized Builds**: Vite provides lightning-fast HMR and optimized production builds
+- **Optimized Builds**: Vite and Next.js provide lightning-fast HMR and optimized production builds
 - **Smart Defaults**: Sensible configurations that work out of the box
 - **Minimal Dependencies**: Only install what you need
 
@@ -360,13 +359,12 @@ Found a bug or have a feature request? Please open an issue on the [GitHub repos
 
 ### Frontend
 - [React Documentation](https://react.dev)
-- [Vue Documentation](https://vuejs.org)
+- [Next.js Documentation](https://nextjs.org/docs)
 - [Vite Documentation](https://vitejs.dev)
 - [Tailwind CSS Documentation](https://tailwindcss.com)
 
 ### Backend
 - [Express.js Documentation](https://expressjs.com)
-- [Fastify Documentation](https://www.fastify.io)
 - [MongoDB Documentation](https://www.mongodb.com/docs)
 - [Mongoose Documentation](https://mongoosejs.com)
 
