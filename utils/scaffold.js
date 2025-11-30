@@ -468,7 +468,8 @@ DB_PASSWORD=password
 			} else if (config.database === "mongodb") {
 				envContent += `
 # MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/myapp
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.qct1l3d.mongodb.net/
+DB_NAME=myapp
 `;
 			}
 
