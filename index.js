@@ -80,10 +80,8 @@ program
         name: 'database',
         message: 'Choose your database:',
         choices: [
-          { name: 'PostgreSQL with Prisma ORM', value: 'prisma-postgresql' },
-          { name: 'MongoDB with Prisma ORM', value: 'prisma-mongodb' },
-          { name: 'PostgreSQL (raw SQL with pg)', value: 'postgresql' },
-          { name: 'MongoDB (with Mongoose)', value: 'mongodb' },
+          { name: 'PostgreSQL', value: 'postgresql' },
+          { name: 'MongoDB', value: 'mongodb' },
           { name: 'None (I\'ll set it up later)', value: 'none' }
         ],
         when: (answers) => answers.projectType === 'fullstack' || answers.projectType === 'backend'
