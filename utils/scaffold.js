@@ -189,7 +189,7 @@ async function setupTailwind(frontendPath) {
 	const spinner = ora("Setting up Tailwind CSS...").start();
 
 	try {
-		// Add Tailwind to package.json dependencies
+		// Add Tailwind v4 dependencies to package.json
 		const packageJsonPath = path.join(frontendPath, "package.json");
 		const packageJson = await fs.readJson(packageJsonPath);
 
@@ -197,56 +197,57 @@ async function setupTailwind(frontendPath) {
 			packageJson.devDependencies = {};
 		}
 
-		packageJson.devDependencies.tailwindcss = "^3.4.1";
-		packageJson.devDependencies.postcss = "^8.4.33";
-		packageJson.devDependencies.autoprefixer = "^10.4.16";
+		// Install Tailwind CSS v4 with Vite plugin
+		packageJson.devDependencies.tailwindcss = "^4.0.0";
+		packageJson.devDependencies["@tailwindcss/vite"] = "^4.0.0";
 
 		await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 
-		// Create tailwind.config.js
-		const tailwindConfig = `/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}`;
+		// Update vite.config to include @tailwindcss/vite plugin
+		const viteConfigPath = path.join(frontendPath, "vite.config.js");
+		const viteConfigTs = path.join(frontendPath, "vite.config.ts");
+		const configPath = (await fs.pathExists(viteConfigTs))
+			? viteConfigTs
+			: viteConfigPath;
 
-		await fs.writeFile(
-			path.join(frontendPath, "tailwind.config.js"),
-			tailwindConfig
-		);
+		if (await fs.pathExists(configPath)) {
+			let viteConfig = await fs.readFile(configPath, "utf8");
 
-		// Create postcss.config.js
-		const postcssConfig = `export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}`;
+			// Add @tailwindcss/vite import if not present
+			if (!viteConfig.includes("@tailwindcss/vite")) {
+				// Find the import section and add the tailwindcss import
+				const importMatch = viteConfig.match(
+					/(import\s+{[^}]+}\s+from\s+['"]vite['"])/
+				);
+				if (importMatch) {
+					viteConfig = viteConfig.replace(
+						importMatch[0],
+						`${importMatch[0]}\nimport tailwindcss from '@tailwindcss/vite'`
+					);
+				}
 
-		await fs.writeFile(
-			path.join(frontendPath, "postcss.config.js"),
-			postcssConfig
-		);
+				// Add tailwindcss() to plugins array
+				viteConfig = viteConfig.replace(
+					/plugins:\s*\[/,
+					"plugins: [\n    tailwindcss(),"
+				);
+			}
 
-		// Add Tailwind to CSS
+			await fs.writeFile(configPath, viteConfig);
+		}
+
+		// Add @import "tailwindcss" to CSS (Tailwind v4 syntax)
 		const cssPath = path.join(frontendPath, "src/index.css");
-		const tailwindImports = `@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-`;
+		const tailwindImport = `@import "tailwindcss";\n\n`;
 
 		if (await fs.pathExists(cssPath)) {
 			const existingCss = await fs.readFile(cssPath, "utf8");
-			await fs.writeFile(cssPath, tailwindImports + existingCss);
+			// Only add if not already present
+			if (!existingCss.includes('@import "tailwindcss"')) {
+				await fs.writeFile(cssPath, tailwindImport + existingCss);
+			}
 		} else {
-			await fs.writeFile(cssPath, tailwindImports);
+			await fs.writeFile(cssPath, tailwindImport);
 		}
 
 		spinner.succeed("Tailwind CSS setup complete");
