@@ -393,7 +393,7 @@ ${
 		: config.projectType === "frontend"
 		? "A frontend"
 		: "A backend"
-} application scaffolded with create-fullstack-app.
+} application scaffolded with create-another-app.
 
 ## Getting Started
 

@@ -33,7 +33,7 @@
 		"url": "https://github.com/Dev22603/create-another-app/issues"
 	},
 	"dependencies": {
-		"chalk": "^5.6.0",
+		"chalk": "^4.1.2",
 		"commander": "^11.1.0",
 		"fs-extra": "^11.3.1",
 		"inquirer": "^8.2.7",

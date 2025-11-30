@@ -2,8 +2,7 @@
 
 const { Command } = require('commander');
 const inquirer = require('inquirer');
-const { Chalk } = require('chalk');
-const chalk = new Chalk();
+const chalk = require('chalk');
 const ora = require('ora');
 const { scaffold } = require('./utils/scaffold');
 

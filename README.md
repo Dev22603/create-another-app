@@ -328,7 +328,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🐛 Issues
 
-Found a bug or have a feature request? Please open an issue on the [GitHub repository](https://github.com/yourusername/create-fullstack-app/issues).
+Found a bug or have a feature request? Please open an issue on the [GitHub repository](https://github.com/Dev22603/create-another-app/issues).
 
 ## 📚 Tech Stack Overview
 
