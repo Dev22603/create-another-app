@@ -100,88 +100,120 @@ async function setupBackend(projectPath, config) {
 	try {
 		await fs.ensureDir(backendPath);
 
-		// Create package.json
-		const packageJson = {
-			name:
-				config.projectType === "fullstack"
-					? `${path.basename(projectPath)}-backend`
-					: path.basename(projectPath),
-			version: "1.0.0",
-			description: "",
-			main: config.backendTemplate.includes("ts")
-				? "dist/server.js"
-				: "server.js",
-			scripts: {
-				start: config.backendTemplate.includes("ts")
-					? "node dist/server.js"
-					: "node server.js",
-				dev: config.backendTemplate.includes("ts")
-					? "tsx watch src/server.ts"
-					: "nodemon server.js",
-				...(config.backendTemplate.includes("ts") && { build: "tsc" }),
-			},
-			dependencies: {
-				express: "^4.18.2",
-				cors: "^2.8.5",
-				...(config.additionalFeatures.includes("env") && {
-					dotenv: "^16.3.1",
-				}),
-				...(config.additionalFeatures.includes("mongodb") && {
-					mongoose: "^7.5.0",
-				}),
-			},
-			devDependencies: {
-				nodemon: "^3.0.1",
-				...(config.backendTemplate.includes("ts") && {
-					"@types/express": "^4.17.17",
-					"@types/cors": "^2.8.13",
-					typescript: "^5.2.2",
-					tsx: "^3.12.8",
-				}),
-			},
-		};
-
+		// Create package.json with database-specific dependencies
+		const packageJson = createPackageJson(projectPath, config);
 		await fs.writeJson(
 			path.join(backendPath, "package.json"),
 			packageJson,
 			{ spaces: 2 }
 		);
 
-		// Create folder structure
-		const folders = [
-			"routes",
-			"controllers",
-			"models",
-			"middleware",
-			"utils",
-		];
-		if (config.backendTemplate.includes("ts")) {
-			folders.push("src");
-			await Promise.all(
-				folders.map((folder) =>
-					fs.ensureDir(
-						path.join(
-							backendPath,
-							folder === "src" ? folder : `src/${folder}`
-						)
-					)
-				)
-			);
-		} else {
-			await Promise.all(
-				folders.map((folder) =>
-					fs.ensureDir(path.join(backendPath, folder))
-				)
-			);
-		}
+		// Create folder structure based on database choice
+		await createBackendFolders(backendPath, config);
 
 		// Create server file
 		await createServerFile(backendPath, config);
+
+		// Create database connection file
+		if (config.database && config.database !== "none") {
+			await createDatabaseFiles(backendPath, config);
+		}
+
+		// Create sample files
+		await createSampleFiles(backendPath, config);
 
 		spinner.succeed("Backend setup complete");
 	} catch (error) {
 		spinner.fail("Backend setup failed");
 		throw error;
+	}
+}
+
+function createPackageJson(projectPath, config) {
+	const dependencies = {
+		express: "^4.18.2",
+		cors: "^2.8.5",
+	};
+
+	if (config.additionalFeatures.includes("env") || config.database !== "none") {
+		dependencies.dotenv = "^16.3.1";
+	}
+
+	if (config.database === "mongodb") {
+		dependencies.mongoose = "^8.0.3";
+	} else if (config.database === "postgresql") {
+		dependencies.pg = "^8.11.3";
+	}
+
+	const devDependencies = {
+		nodemon: "^3.0.1",
+	};
+
+	if (config.backendTemplate.includes("ts")) {
+		devDependencies["@types/express"] = "^4.17.17";
+		devDependencies["@types/cors"] = "^2.8.13";
+		devDependencies["@types/node"] = "^20.10.6";
+		devDependencies.typescript = "^5.3.3";
+		devDependencies.tsx = "^4.7.0";
+
+		if (config.database === "postgresql") {
+			devDependencies["@types/pg"] = "^8.10.9";
+		}
+	}
+
+	return {
+		name:
+			config.projectType === "fullstack"
+				? `${path.basename(projectPath)}-backend`
+				: path.basename(projectPath),
+		version: "1.0.0",
+		description: "",
+		type: "module",
+		main: config.backendTemplate.includes("ts")
+			? "dist/index.js"
+			: "index.mjs",
+		scripts: {
+			start: config.backendTemplate.includes("ts")
+				? "node dist/index.js"
+				: "node index.mjs",
+			dev: config.backendTemplate.includes("ts")
+				? "tsx watch src/index.mts"
+				: "nodemon index.mjs",
+			...(config.backendTemplate.includes("ts") && { build: "tsc" }),
+		},
+		dependencies,
+		devDependencies,
+	};
+}
+
+async function createBackendFolders(backendPath, config) {
+	let folders = ["routes", "controllers", "middleware", "utils"];
+
+	// Add database-specific folders
+	if (config.database === "postgresql") {
+		folders.push("queries", "db");
+	} else if (config.database === "mongodb") {
+		folders.push("models", "db");
+	}
+
+	if (config.backendTemplate.includes("ts")) {
+		folders.push("src");
+		await Promise.all(
+			folders.map((folder) =>
+				fs.ensureDir(
+					path.join(
+						backendPath,
+						folder === "src" ? folder : `src/${folder}`
+					)
+				)
+			)
+		);
+	} else {
+		await Promise.all(
+			folders.map((folder) =>
+				fs.ensureDir(path.join(backendPath, folder))
+			)
+		);
 	}
 }
 
@@ -197,9 +229,9 @@ async function setupTailwind(frontendPath) {
 			packageJson.devDependencies = {};
 		}
 
-		// Install Tailwind CSS v4 with Vite plugin
-		packageJson.devDependencies.tailwindcss = "^4.0.0";
-		packageJson.devDependencies["@tailwindcss/vite"] = "^4.0.0";
+		// Install Tailwind CSS v4.1 with Vite plugin
+		packageJson.devDependencies.tailwindcss = "^4.1.0";
+		packageJson.devDependencies["@tailwindcss/vite"] = "^4.1.0";
 
 		await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 
@@ -259,22 +291,30 @@ async function setupTailwind(frontendPath) {
 
 async function createServerFile(backendPath, config) {
 	const isTypeScript = config.backendTemplate.includes("ts");
+	const ext = isTypeScript ? ".mts" : ".mjs";
 	const serverPath = isTypeScript
-		? path.join(backendPath, "src/server.ts")
-		: path.join(backendPath, "server.js");
+		? path.join(backendPath, `src/index${ext}`)
+		: path.join(backendPath, `index${ext}`);
 
-	const serverContent = `${
-		config.additionalFeatures.includes("env")
-			? "require('dotenv').config();\n"
-			: ""
-	}
-const express = require('express');
-const cors = require('cors');
-${
-	config.additionalFeatures.includes("mongodb")
-		? "const mongoose = require('mongoose');\n"
-		: ""
-}
+	// Load template based on database choice
+	let serverTemplate;
+	if (config.database === "postgresql") {
+		serverTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/postgresql-server.template.js"
+		));
+	} else if (config.database === "mongodb") {
+		serverTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/mongodb-server.template.js"
+		));
+	} else {
+		// No database template
+		const envImport = config.additionalFeatures.includes("env")
+			? "import dotenv from 'dotenv';\ndotenv.config();\n\n"
+			: "";
+		serverTemplate = () => `${envImport}import express from 'express';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -283,17 +323,6 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-${
-	config.additionalFeatures.includes("mongodb")
-		? `
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myapp')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-`
-		: ""
-}
 
 // Routes
 app.get('/', (req, res) => {
@@ -308,15 +337,17 @@ app.listen(PORT, () => {
   console.log(\`Server running on http://localhost:\${PORT}\`);
 });
 `;
+	}
 
-	await fs.writeFile(serverPath, serverContent);
+	await fs.writeFile(serverPath, serverTemplate(config));
 
 	// Create TypeScript config if needed
 	if (isTypeScript) {
 		const tsConfig = {
 			compilerOptions: {
-				target: "es2020",
-				module: "commonjs",
+				target: "ES2020",
+				module: "NodeNext",
+				moduleResolution: "NodeNext",
 				outDir: "./dist",
 				rootDir: "./src",
 				strict: true,
@@ -334,25 +365,117 @@ app.listen(PORT, () => {
 	}
 }
 
+async function createDatabaseFiles(backendPath, config) {
+	const isTypeScript = config.backendTemplate.includes("ts");
+	const ext = isTypeScript ? ".mts" : ".mjs";
+	const dbDir = isTypeScript ? "src/db" : "db";
+	const dbPath = path.join(backendPath, dbDir);
+
+	let dbTemplate;
+	let filename;
+
+	if (config.database === "postgresql") {
+		dbTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/postgresql-db.template.js"
+		));
+		filename = `db${ext}`;
+	} else if (config.database === "mongodb") {
+		dbTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/mongodb-db.template.js"
+		));
+		filename = `database${ext}`;
+	}
+
+	if (dbTemplate) {
+		await fs.writeFile(path.join(dbPath, filename), dbTemplate());
+	}
+}
+
+async function createSampleFiles(backendPath, config) {
+	const isTypeScript = config.backendTemplate.includes("ts");
+	const ext = isTypeScript ? ".mts" : ".mjs";
+	const baseDir = isTypeScript ? "src" : "";
+
+	// Create sample controller
+	const controllerTemplate = require(path.join(
+		__dirname,
+		"../templates/backend/sample-user-controller.template.js"
+	));
+	await fs.writeFile(
+		path.join(backendPath, baseDir, "controllers", `user.controller${ext}`),
+		controllerTemplate(config.database || "none")
+	);
+
+	// Create sample routes
+	const routesTemplate = require(path.join(
+		__dirname,
+		"../templates/backend/sample-user-routes.template.js"
+	));
+	await fs.writeFile(
+		path.join(backendPath, baseDir, "routes", `user.routes${ext}`),
+		routesTemplate()
+	);
+
+	// Create database-specific files
+	if (config.database === "postgresql") {
+		const queryTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/sample-user-query.template.js"
+		));
+		await fs.writeFile(
+			path.join(backendPath, baseDir, "queries", `user.queries${ext}`),
+			queryTemplate()
+		);
+	} else if (config.database === "mongodb") {
+		const modelTemplate = require(path.join(
+			__dirname,
+			"../templates/backend/sample-user-model.template.js"
+		));
+		await fs.writeFile(
+			path.join(backendPath, baseDir, "models", `user.model${ext}`),
+			modelTemplate()
+		);
+	}
+}
+
 async function setupAdditionalFeatures(projectPath, config) {
 	const spinner = ora("Setting up additional features...").start();
 
 	try {
 		// Environment variables
-		if (config.additionalFeatures.includes("env")) {
-			const envContent = `# Environment Variables
+		if (
+			config.additionalFeatures.includes("env") ||
+			config.database !== "none"
+		) {
+			let envContent = `# Environment Variables
 NODE_ENV=development
 PORT=5000
-${
-	config.additionalFeatures.includes("mongodb")
-		? "MONGODB_URI=mongodb://localhost:27017/myapp\n"
-		: ""
-}
-${
-	config.additionalFeatures.includes("auth")
-		? "JWT_SECRET=your-super-secret-jwt-key\n"
-		: ""
-}`;
+`;
+
+			if (config.database === "postgresql") {
+				envContent += `
+# PostgreSQL Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=myapp
+DB_USER=postgres
+DB_PASSWORD=password
+`;
+			} else if (config.database === "mongodb") {
+				envContent += `
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/myapp
+`;
+			}
+
+			if (config.additionalFeatures.includes("auth")) {
+				envContent += `
+# Authentication
+JWT_SECRET=your-super-secret-jwt-key
+`;
+			}
 
 			const envPath =
 				config.projectType === "fullstack"
@@ -449,7 +572,7 @@ ${
 					: "React (Vite)"
 		  }\n`
 		: ""
-}${config.includeTailwind ? "- 🎨 Tailwind CSS for styling\n" : ""}${
+}${config.includeTailwind ? "- 🎨 Tailwind CSS v4 for styling\n" : ""}${
 		config.projectType !== "frontend"
 			? `- 🚀 Express.js backend${
 					config.backendTemplate.includes("ts")
@@ -458,11 +581,15 @@ ${
 			  }\n`
 			: ""
 	}${
-		config.additionalFeatures.includes("mongodb")
-			? "- 🗄️ MongoDB integration\n"
+		config.database === "mongodb"
+			? "- 🗄️ MongoDB integration with Mongoose\n"
 			: ""
 	}${
-		config.additionalFeatures.includes("env")
+		config.database === "postgresql"
+			? "- 🐘 PostgreSQL integration with pg\n"
+			: ""
+	}${
+		config.additionalFeatures.includes("env") || config.database !== "none"
 			? "- 🔧 Environment variables setup\n"
 			: ""
 	}

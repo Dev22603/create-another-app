@@ -76,6 +76,17 @@ program
         when: (answers) => answers.projectType === 'fullstack' || answers.projectType === 'backend'
       },
       {
+        type: 'list',
+        name: 'database',
+        message: 'Choose your database:',
+        choices: [
+          { name: 'PostgreSQL', value: 'postgresql' },
+          { name: 'MongoDB', value: 'mongodb' },
+          { name: 'None (I\'ll set it up later)', value: 'none' }
+        ],
+        when: (answers) => answers.projectType === 'fullstack' || answers.projectType === 'backend'
+      },
+      {
         type: 'checkbox',
         name: 'additionalFeatures',
         message: 'Select additional features:',
@@ -83,7 +94,6 @@ program
           { name: 'Environment variables setup (.env)', value: 'env' },
           { name: 'ESLint configuration', value: 'eslint' },
           { name: 'Prettier configuration', value: 'prettier' },
-          { name: 'MongoDB connection setup', value: 'mongodb' },
           { name: 'Authentication middleware setup', value: 'auth' }
         ]
       },
